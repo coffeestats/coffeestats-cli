@@ -10,16 +10,16 @@ useragent="coffeestats-cli/${version} $(curl --version | grep -Eo 'libcurl/[^ ]+
 
 usage() {
 	local scriptname=$(basename "$0")
-	echo "Usage: $scriptname ACTION"                                               >&2
-	echo "ACTION may be one of the following:"                                     >&2
-	echo "  coffee"                                                                >&2
-	echo "    Tell coffeestats.org that you just got yourself a nice hot cup of"   >&2
-	echo "    delicious coffee."                                                   >&2
-	echo "  mate"                                                                  >&2
-	echo "    Tell coffeestats.org that you're replenishing your supply of"        >&2
-	echo "    caffeeine with a cold bottle of mate."                               >&2
-	echo "$scriptname is a command-line submission script for coffeestats.org"     >&2
-	echo "by Clemens Lang. See https://github.com/neverpanic/coffeestats-cli"      >&2
+	echo "Usage: $scriptname ACTION" >&2
+	echo "ACTION may be one of the following:" >&2
+	echo "  coffee" >&2
+	echo "    Tell coffeestats.org that you just got yourself a nice hot cup of" >&2
+	echo "    delicious coffee." >&2
+	echo "  mate" >&2
+	echo "    Tell coffeestats.org that you're replenishing your supply of" >&2
+	echo "    caffeeine with a cold bottle of mate." >&2
+	echo "$scriptname is a command-line submission script for coffeestats.org" >&2
+	echo "by Clemens Lang. See https://github.com/neverpanic/coffeestats-cli" >&2
 }
 
 if [ ! -f "$conf" ]; then
@@ -44,8 +44,8 @@ if [ ! -f "$conf" ]; then
 		if [ "$ontherunurl" == "" ]; then
 			echo "The URL was empty, please try again." >&2
 		else
-			user=$(expr "${ontherunurl}" : '.*u=\([^&]*\)' || true)
-			hash=$(expr "${ontherunurl}" : '.*t=\([^&]*\)' || true)
+            user=$(expr "${ontherunurl}" : '.*ontherun/\([^/]*\)/.*')
+            hash=$(expr "${ontherunurl}" : '.*ontherun/[^/]*/\([^/]*\)')
 			if [ "$user" == "" ]; then
 				echo "Couldn't extract user, please make sure you're using the correct URL and try again (or report a bug)." >&2
 			fi
@@ -108,7 +108,7 @@ else
 	#  -L: follow redirects (the submit page will always redirect, but the target varies depending on successful authentication)
 	#  -A: set the useragent
 	#  --data-urlencode: the actual data to be sent
-	result=$(curl -f -s -S -L -A "$useragent" --data-urlencode "submit=${submit}" --data-urlencode "${timefield}=${time}" "https://coffeestats.org/ontherun?u=${user}&t=${hash}")
+	result=$(curl -f -s -S -L -A "$useragent" -X POST -d "u=${user}&t=${hash}&beverage=${drink}&time=${time}" https://coffeestats.org/api/v1/add-drink)
 	return=$?
 	if [[ $return != 0 ]] || (echo "${result}" | grep 'password' >/dev/null); then
 		if [[ $return != 0 ]]; then
